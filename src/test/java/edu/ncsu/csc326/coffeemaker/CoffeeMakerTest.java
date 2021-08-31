@@ -290,6 +290,21 @@ public class CoffeeMakerTest {
 
 	}
 
+	/**
+	 * Test that the inventory checking displays the ingredients correctly.
+	 * @see ingredientString() method
+	 * 
+	 * @throws RecipeException
+	 */
+	@Test
+	public void testCheckingInventory() throws RecipeException 
+	{
+		String expectedInventory = ingredientString(15, 15, 15, 15);
+		assertEquals(expectedInventory, coffeeMaker.checkInventory());
+
+	}
+
+
 	// @Test
 	// public void testMainMenu()
 	// {
