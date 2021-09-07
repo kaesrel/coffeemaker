@@ -58,9 +58,6 @@ public class CoffeeMakerTest {
 	@Before
 	public void setUp() throws RecipeException {
 		coffeeMaker = new CoffeeMaker();
-		
-		// System.out.println("I existed!");
-
 
 		//Set up for r1
 		recipe1 = new Recipe();
@@ -111,7 +108,6 @@ public class CoffeeMakerTest {
 		coffeeMaker.addInventory("4","7","3","9");
 		String expectedInventory = ingredientString(19, 22, 18, 24);
 		assertEquals(expectedInventory, coffeeMaker.checkInventory());
-
 	}
 	
 	/**
@@ -145,13 +141,30 @@ public class CoffeeMakerTest {
 	public void testMakeCoffeeWithoutEnoughIngredients() throws RecipeException 
 	{
 		int payment = 100; 
-		coffeeMaker.addRecipe(recipe2);
-		assertEquals(payment, coffeeMaker.makeCoffee(0, payment));
-
-		// should not modify ingredients
+		Recipe tooMuchCoffee = createRecipe("too much Coffee", "50", "30", "0", "0", "0");
+		Recipe tooMuchMilk = createRecipe("too much Milk", "50", "0", "0", "0", "30");
+		Recipe tooMuchSugar = createRecipe("too much Sugar", "50", "0", "0", "30", "0");
+		Recipe tooMuchChocolate = createRecipe("too much Chocolate", "50", "0", "30", "0", "0");
+		
+		coffeeMaker.addRecipe(tooMuchCoffee);
+		coffeeMaker.addRecipe(tooMuchMilk);
+		coffeeMaker.addRecipe(tooMuchSugar);
 		String expectedInventory = ingredientString(15, 15, 15, 15);
+		
+
+		assertEquals(payment, coffeeMaker.makeCoffee(0, payment));
 		assertEquals(expectedInventory, coffeeMaker.checkInventory());
 
+		assertEquals(payment, coffeeMaker.makeCoffee(1, payment));
+		assertEquals(expectedInventory, coffeeMaker.checkInventory());
+
+		assertEquals(payment, coffeeMaker.makeCoffee(2, payment));
+		assertEquals(expectedInventory, coffeeMaker.checkInventory());
+
+		coffeeMaker.deleteRecipe(2);
+		coffeeMaker.addRecipe(tooMuchChocolate);
+		assertEquals(payment, coffeeMaker.makeCoffee(3, payment)); // should be 2, but delete recipe has a bug
+		assertEquals(expectedInventory, coffeeMaker.checkInventory());
 	}
 
 	/**
@@ -339,6 +352,158 @@ public class CoffeeMakerTest {
 
 	// }
 
+	/**
+	 * Test that the coffee is added into inventory correctly.
+	 * 
+	 * @throws InventoryException - when values that are not positive
+	 *     integer are given
+	 */
+	@Test
+	public void testAddCoffee() throws InventoryException
+	{
+		inventoryAddTestHelper(coffeeMaker, 10, 0, 0, 0);
+
+		inventoryExceptionTestHelper(coffeeMaker, "abcd", "0", "0", "0",
+				"Non-integer coffee value added to coffee maker's inventory");
+
+		inventoryExceptionTestHelper(coffeeMaker, "-1", "0", "0", "0",
+				"Negative integer coffee value added to coffee maker's inventory");
+	}
+
+	/**
+	 * Test that the milk is added into inventory correctly.
+	 * 
+	 * @throws InventoryException - when values that are not positive
+	 *     integer are given
+	 */
+	@Test
+	public void testAddMilk() throws InventoryException
+	{
+		inventoryAddTestHelper(coffeeMaker, 0, 10, 0, 0);
+
+		inventoryExceptionTestHelper(coffeeMaker, "0", "abcd", "0", "0",
+				"Non-integer milk value added to coffee maker's inventory");
+
+		inventoryExceptionTestHelper(coffeeMaker, "0", "-1", "0", "0",
+				"Negative integer milk value added to coffee maker's inventory");
+	}
+
+	/**
+	 * Test that the sugar is added into inventory correctly.
+	 * 
+	 * @throws InventoryException - when values that are not positive
+	 *     integer are given
+	 */
+	@Test
+	public void testAddSugar() throws InventoryException
+	{
+		inventoryExceptionTestHelper(coffeeMaker, "0", "0", "abcd", "0",
+				"Non-integer sugar value added to coffee maker's inventory");
+
+		inventoryExceptionTestHelper(coffeeMaker, "0", "0", "-1", "0",
+				"Negative integer sugar value added to coffee maker's inventory");
+
+		inventoryAddTestHelper(coffeeMaker, 0, 0, 10, 0);
+	}
+
+	/**
+	 * Test that the chocolate is added into inventory correctly.
+	 * 
+	 * @throws InventoryException - when values that are not positive
+	 *     integer are given
+	 */
+	@Test
+	public void testAddChocolate() throws InventoryException
+	{
+		inventoryAddTestHelper(coffeeMaker, 0, 0, 0, 10);
+
+		inventoryExceptionTestHelper(coffeeMaker, "0", "0", "0", "abcd",
+				"Non-integer chocolate value added to coffee maker's inventory");
+
+		inventoryExceptionTestHelper(coffeeMaker, "0", "0", "0", "-1",
+				"Negative integer chocolate value added to coffee maker's inventory");
+	}
+
+	/**
+	 * Test that the inventory will not set invalid ingredients value.
+	 * The amount of ingredients in the inventory must still be the same.
+	 * 
+	 */
+	@Test
+    public void testSetInvalidIngredients()
+    {
+        Inventory inventory = new Inventory();
+        inventory.setCoffee(-1);
+        inventory.setMilk(-1);
+        inventory.setChocolate(-1);
+        inventory.setSugar(-1);
+
+        String expectedInventory = ingredientString(15, 15, 15, 15);
+		assertEquals(expectedInventory, inventory.toString());
+
+    }
+
+	/**
+	 * Test that a coffee will not be created without a valid recipe.
+	 */
+	@Test
+	public void testMakeNonExistentCoffee()
+	{
+		int payment = 100;
+		assertEquals(100, coffeeMaker.makeCoffee(0, payment));
+	}
+
+	/**
+	 * Test that a non-existent recipe cannot be edited.
+	 * No new recipe will be created or added by editing a non-existent recipe.
+	 */
+	@Test
+	public void testEditNonExistentRecipe()
+	{
+		assertNull("Non-existent recipe must be non-modifiable.", coffeeMaker.editRecipe(0, recipe1));
+	}
+
+
+	// subroutines for easier testing
+
+	/**
+	 * This is a subroutine to help test adding ingredient into the inventory.
+	 * It does not support adding invalid ingredients.
+	 * 
+	 * @throws InventoryException
+	 */
+	private static void inventoryAddTestHelper(CoffeeMaker coffeeMaker,
+			int coffee, int milk, int sugar, int chocolate) 
+			throws InventoryException
+	{
+		coffeeMaker.addInventory(String.valueOf(coffee),
+				String.valueOf(milk),
+				String.valueOf(sugar),
+				String.valueOf(chocolate)); // coffee, milk, sugar, chocolate
+
+		String expectedInventory = ingredientString(15+coffee,
+			15+milk, 15+sugar, 15+chocolate);
+		assertEquals(expectedInventory, coffeeMaker.checkInventory());
+	}
+
+	/**
+	 * This is a subroutine to help test adding invalid ingredients.
+	 * It expects at least 1 ingredient value to be invalid.
+	 * 
+	 * @param errMsg the desired error message to be given when this helper fails.
+	 */
+	private static void inventoryExceptionTestHelper(CoffeeMaker coffeeMaker,
+			String coffee, String milk, String sugar, String chocolate,
+			String errMsg)
+	{
+		try 
+		{
+			coffeeMaker.addInventory(coffee, milk, sugar, chocolate);
+			fail(errMsg);
+		}
+		catch (InventoryException e) {} // expected result
+	}
+
 
 	/**
 	 * Formats the given ingredients into the Inventory.toString() format.
@@ -362,7 +527,6 @@ public class CoffeeMakerTest {
     	buf.append("\n");
 		return buf.toString();
 	}
-
 
 	/**
 	 * This function is a helper to create recipe with desired values quickly.
