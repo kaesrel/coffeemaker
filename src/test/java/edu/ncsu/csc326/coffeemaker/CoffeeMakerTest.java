@@ -123,7 +123,7 @@ public class CoffeeMakerTest {
 	}
 	
 	/**
-	 * Test that a coffee is successfully and ingredients used correctly.
+	 * Test that a coffee is successfully made and ingredients used correctly.
 	 * This assumes that the recipe is valid.
 	 */
 	@Test
@@ -161,9 +161,10 @@ public class CoffeeMakerTest {
 		assertEquals(payment, coffeeMaker.makeCoffee(2, payment));
 		assertEquals(expectedInventory, coffeeMaker.checkInventory());
 
-		coffeeMaker.deleteRecipe(2);
-		coffeeMaker.addRecipe(tooMuchChocolate);
-		assertEquals(payment, coffeeMaker.makeCoffee(3, payment)); // should be 2, but delete recipe has a bug
+		// coffeeMaker.deleteRecipe(2);
+		// coffeeMaker.addRecipe(tooMuchChocolate);
+		coffeeMaker.editRecipe(2, tooMuchChocolate);
+		assertEquals(payment, coffeeMaker.makeCoffee(2, payment));
 		assertEquals(expectedInventory, coffeeMaker.checkInventory());
 	}
 
@@ -458,13 +459,40 @@ public class CoffeeMakerTest {
 	 * No new recipe will be created or added by editing a non-existent recipe.
 	 */
 	@Test
-	public void testEditNonExistentRecipe()
+	public void testEditNonExistentRecipe() throws RecipeException
 	{
 		assertNull("Non-existent recipe must be non-modifiable.", coffeeMaker.editRecipe(0, recipe1));
 	}
 
+	/**
+	 * Test that multiple coffee makers works independently and correctly.
+	 * The variables must not be shared among coffee maker objects.
+	 * 
+	 * @throws RecipeException
+	 */
+	@Test
+    public void testMultipleCoffeeMaker() throws RecipeException
+    {
+		CoffeeMaker nescafe = new CoffeeMaker();
+		CoffeeMaker starbucks = new CoffeeMaker();
 
-	// subroutines for easier testing
+		Recipe instantCoffee = createRecipe("instant coffee", "10", "2", "0", "1", "0");
+		Recipe caffeMocha = createRecipe("caffe mocha", "140", "5", "2", "2", "4");
+
+		nescafe.addRecipe(instantCoffee);
+		starbucks.addRecipe(caffeMocha);
+
+		assertEquals(10, nescafe.makeCoffee(0, 20));
+		assertEquals(60, starbucks.makeCoffee(0, 200));
+
+		String expectedNescafeInventory = ingredientString(13, 15, 14, 15);
+		String expectedStarbucksInventory = ingredientString(10, 11, 13, 13);
+
+		assertEquals(expectedNescafeInventory, nescafe.checkInventory());
+		assertEquals(expectedStarbucksInventory, starbucks.checkInventory());
+    }
+
+	// test subroutine helper
 
 	/**
 	 * This is a subroutine to help test adding ingredient into the inventory.
@@ -504,6 +532,7 @@ public class CoffeeMakerTest {
 		catch (InventoryException e) {} // expected result
 	}
 
+	// misc helper functions
 
 	/**
 	 * Formats the given ingredients into the Inventory.toString() format.
@@ -546,7 +575,4 @@ public class CoffeeMakerTest {
 
 		return recipe;
 	}
-
-
-
 }
