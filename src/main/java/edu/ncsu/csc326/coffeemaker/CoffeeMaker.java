@@ -95,7 +95,6 @@ public class CoffeeMaker {
      * @return Inventory
      */
     public synchronized String checkInventory() {
-		recipeBook.toString();
         return inventory.toString();
     }
     
