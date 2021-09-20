@@ -10,6 +10,11 @@ import io.cucumber.datatable.*;
 import java.util.*;
 
 
+/**
+ * This is a test class that implements the cucumber module.
+ * It uses the data .feature files and use regular expression to match into tests.
+ * 
+ */
 public class CoffeeStepDef
 {
     CoffeeMaker coffeemaker;
@@ -24,6 +29,10 @@ public class CoffeeStepDef
         coffeemaker = new CoffeeMaker(new RecipeBookImpl(), new Inventory());
     }
 
+    /**
+     * 
+     * @param dataTable the values given from gherkin as values for the recipes
+     */
     @Given("the recipes")
     public void theRecipes(DataTable dataTable) throws RecipeException
     {
@@ -41,6 +50,13 @@ public class CoffeeStepDef
         }
     }
 
+    /**
+     * This precondition is similar to "theRecipes()".
+     * The difference is adding those recipes into coffee maker is integrated
+     * into this step.
+     * 
+     * @param dataTable the values given from gherkin as values for the recipes
+     */
     @Given("add the recipes")
     public void addTheRecipes(DataTable dataTable) throws RecipeException
     {
@@ -74,6 +90,11 @@ public class CoffeeStepDef
         assertEquals(recipes, flattenArray(coffeemaker.getRecipes()));
     }
 
+    /**
+     * 
+     * @param index the selected recipe number
+     * @param dataTable the values given from gherkin as values for the recipes
+     */
     @When("I edit recipe number {int} to be")
     public void iEditRecipeNumberToBe(int index, DataTable dataTable)
             throws RecipeException
@@ -87,6 +108,12 @@ public class CoffeeStepDef
         coffeemaker.editRecipe(index, newRecipe);
     }
 
+    /**
+     * Compares the recipe to the recipe with data given from gherkin.
+     * 
+     * @param index the selected recipe number
+     * @param dataTable the values given from gherkin as values for the recipes
+     */
     @Then("the recipe number {int} of the coffee maker should be")
     public void theRecipeNumberOfTheCoffeeMakerShouldBe(int index, DataTable dataTable)
             throws RecipeException
@@ -150,6 +177,10 @@ public class CoffeeStepDef
         assertEquals(spareMoney, change);
     }
 
+    /**
+     * 
+     * @param dataTable the values given from gherkin as values for the inventory
+     */
     @Then("the ingredients left are")
     public void theIngredientsLeftAre(DataTable dataTable)
     {
@@ -187,6 +218,7 @@ public class CoffeeStepDef
 
     /**
      * Creates a new array that removes the null element.
+     * This is used for helping to compare recipe arrays.
      */
     private static Recipe[] flattenArray(Recipe recipes[])
     {
@@ -201,7 +233,7 @@ public class CoffeeStepDef
         return list.toArray(new Recipe[0]);
     }
 
-        /**
+    /**
 	 * Formats the given ingredients into the Inventory.toString() format.
 	 * 
 	 * @return the ingredients represented as a String with same format as Inventory.toString()
@@ -224,12 +256,4 @@ public class CoffeeStepDef
 		return buf.toString();
 	}
 }
-
-
-// Recipe r = coffeemaker.getRecipes()[index];
-// System.out.printf("%s, %d, %d, %d, %d, %d\n", r.getName(), r.getPrice(),
-//         r.getAmtCoffee(), r.getAmtMilk(), r.getAmtSugar(),
-//         r.getAmtChocolate());
-// throws RecipeException
-// throws InventoryException;
 

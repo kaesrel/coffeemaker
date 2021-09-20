@@ -1,4 +1,5 @@
 Feature: Purchasing the coffee from the coffee maker
+  The inventory in the coffee maker contains 15 amount of each ingredient
 
   Scenario: Buy coffee normally
     Given a default coffee maker
